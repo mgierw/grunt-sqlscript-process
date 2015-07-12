@@ -14,7 +14,8 @@ module.exports = function(grunt) {
 		var config = this.data;
 		var requirementsMet = true;
 		var path = require('path');
-		['scripts', 'dialect'].forEach(function(prop) {
+		var async = require('async');
+		['scripts', 'dialect', 'scriptFilenameTable'].forEach(function(prop) {
 			if (!config[prop]) {
 				grunt.log.warn('Property \'' + prop + '\' is not defined.');
 				requirementsMet = false;
@@ -28,21 +29,23 @@ module.exports = function(grunt) {
 			grunt.log.writeln('No scritps found for mask \'' + config.scripts + '\'');
 			return true;
 		}
-		var db = null;
-		var execQueryFunction = null;
+		scripts.sort();
 
-		var processScripts = function() {
-			//console.log(arguments);
-			scripts.forEach(function(script) {
-				grunt.log.write('Processing script \'' + script + '\'... ');
+		var processScripts = function(runScriptFunction) {
+			async.mapSeries(scripts, function(script, doneCallback) {
+				grunt.log.write('Processing script \'' + script + '\'...');
 				var scriptContent = grunt.file.read(script);
-				execQueryFunction(scriptContent, function() {
-					//grunt.log.writeln(' DONE');
-					//console.log('DONE');
-					done();
+				runScriptFunction(scriptContent, function() {
+					grunt.log.writeln(' DONE');
+					doneCallback(null, script);
 				});
+			}, function() {
+				grunt.log.writeln('All scripts processed.');
+				done();
 			});
 		};
+
+		// Sqlite-specific processing
 		if (config.dialect === 'sqlite') {
 			if (!config.sqliteDbFile) {
 				grunt.log.warn('Property \'sqliteDbFile\' is not defined.');
@@ -51,10 +54,18 @@ module.exports = function(grunt) {
 			var sqlite = require('sqlite3');
 
 			grunt.file.mkdir(path.dirname(config.sqliteDbFile));
-			db = new sqlite.Database(config.sqliteDbFile, processScripts);
-			execQueryFunction = function(sql) {
-				db.run(sql);
-			};
+			var db = new sqlite.Database(config.sqliteDbFile, function() {
+				var runScriptFunction = function(sql, successCallback) {
+					db.exec(sql, successCallback);
+				};
+				processScripts(runScriptFunction);
+			});
+		} else if (['mysql', 'postgresql'].indexOf(config.dialect) !== -1) {
+			grunt.log.warn('Specified dialect \'' + config.dialect + '\' not supported yet');
+			return false;
+		} else {
+			grunt.log.warn('Unknown dialect \'' + config.dialect + '\'');
+			return false;
 		}
 	});
 };
