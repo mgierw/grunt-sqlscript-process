@@ -9,20 +9,19 @@
 'use strict';
 
 module.exports = function(grunt) {
-
-  // Please see the Grunt documentation for more information regarding task
-  // creation: http://gruntjs.com/creating-tasks
-
   grunt.registerMultiTask('sqlscript_process', 'Processing sql scripts from specified folder', function() {
-    // Merge task-specific and/or target-specific options with these defaults.
-    var options = this.options({
-      punctuation: '.',
-      separator: ', '
-    });
+    var options = this.options();
+    console.log(grunt.file);
+
+    if (!this.data.scriptFolder) {
+      grunt.log.warn('Property \'scriptFolder\' is not defined.');
+      return false;
+    }
 
     // Iterate over all specified file groups.
-    this.files.forEach(function(f) {
+    //this.files.forEach(function(f) {
       // Concat specified files.
+  /*
       var src = f.src.filter(function(filepath) {
         // Warn on and remove invalid source files (if nonull was set).
         if (!grunt.file.exists(filepath)) {
@@ -41,10 +40,10 @@ module.exports = function(grunt) {
 
       // Write the destination file.
       grunt.file.write(f.dest, src);
-
+*/
       // Print a success message.
-      grunt.log.writeln('File "' + f.dest + '" created.');
-    });
+      //grunt.log.writeln('File "' + f.dest + '" created.');
+    //});
   });
 
 };

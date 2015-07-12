@@ -30,22 +30,17 @@ module.exports = function(grunt) {
 
     // Configuration to be run (and then tested).
     sqlscript_process: {
-      default_options: {
+      //default_options: {
         options: {
         },
-        files: {
-          'tmp/default_options': ['test/fixtures/testing', 'test/fixtures/123']
+        dev: {
+          scriptFolder: "test/sql/*.sql"
         }
-      },
-      custom_options: {
-        options: {
-          separator: ': ',
-          punctuation: ' !!!'
-        },
-        files: {
-          'tmp/custom_options': ['test/fixtures/testing', 'test/fixtures/123']
-        }
-      }
+        //,
+        //files: {
+        //  'tmp/default_options': ['test/fixtures/testing', 'test/fixtures/123']
+        //}
+      //}
     },
 
     // Unit tests.
