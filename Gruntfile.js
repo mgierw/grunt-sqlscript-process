@@ -6,21 +6,16 @@
  * Licensed under the MIT license.
  */
 
-'use strict';
-
 module.exports = function (grunt) {
+	'use strict';
 
 	// Project configuration.
 	grunt.initConfig({
 		jshint : {
 			all : [
 				'Gruntfile.js',
-				'tasks/*.js',
-				'<%= nodeunit.tests %>'
-			],
-			options : {
-				jshintrc : '.jshintrc'
-			}
+				'tasks/*.js'
+			]
 		},
 
 		clean : {
@@ -49,7 +44,7 @@ module.exports = function (grunt) {
 
 	// Whenever the "test" task is run, first clean the "tmp" dir, then run this
 	// plugin's task(s), then test the result.
-	grunt.registerTask('test', ['clean', 'sqlscript_process']);
+	grunt.registerTask('test', ['clean', 'sqlscript_process', 'sqlscript_process']);
 
 	// By default, lint and run all tests.
 	grunt.registerTask('default', ['jshint', 'test']);

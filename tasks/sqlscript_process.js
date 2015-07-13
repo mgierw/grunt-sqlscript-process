@@ -6,9 +6,8 @@
  * Licensed under the MIT license.
  */
 
- 'use strict';
-
 module.exports = function(grunt) {
+	'use strict';
 	grunt.registerMultiTask('sqlscript_process', 'Processing sql scripts from specified folder', function() {
 		var done = this.async();
 		var config = this.data;
@@ -31,19 +30,17 @@ module.exports = function(grunt) {
 		}
 		scripts.sort();
 
-		var processScripts = function(runScriptFunction, runQueryFunction) {
+		var processScripts = function(runScriptFunction, getQueryFunction) {
 			async.mapSeries(scripts, function(script, doneCallback) {
 				grunt.log.write('Processing script \'' + script + '\'...');
-				var checkExecutedSql = "select count(*) from " + config.scriptFilenameTable + " where script_name = '" + path.basename(script) + "'";
-				console.log(checkExecutedSql);
-				runQueryFunction(checkExecutedSql, function(result) {
-					if (result[0] == 0) {
+				var checkExecutedSql = "select count(*) as cnt from " + config.scriptFilenameTable + " where script_name = '" + path.basename(script) + "'";
+				getQueryFunction(checkExecutedSql, function(err, result) {
+					if (result.cnt === 0) {
 						var scriptContent = grunt.file.read(script);
 						runScriptFunction(scriptContent, function() {
 							grunt.log.writeln(' DONE');
 							checkExecutedSql = "insert into " + config.scriptFilenameTable + "(script_name) values('" + path.basename(script) + "')";
-							console.log(checkExecutedSql);
-							runQueryFunction(checkExecutedSql, function(result) {
+							getQueryFunction(checkExecutedSql, function(result) {
 								doneCallback(null, script);
 							});
 						});
@@ -71,17 +68,17 @@ module.exports = function(grunt) {
 				var runScriptFunction = function(sql, successCallback) {
 					db.exec(sql, successCallback);
 				};
-				var runQueryFunction = function(sql, successCallback) {
-					db.run(sql, successCallback);
+				var getQueryFunction = function(sql, successCallback) {
+					db.get(sql, successCallback);
 				};
 				var scriptFilenameTableExists = false;
-				// TODO: Check if config.scriptFilenameTable exists in database
 				if (!scriptFilenameTableExists) {
-					runQueryFunction("create table " + config.scriptFilenameTable + "(script_name varchar(100) not null)", function() {
-						processScripts(runScriptFunction, runQueryFunction);
+					var createTableSql = "create table " + config.scriptFilenameTable + "(script_name varchar(100) not null)";
+					getQueryFunction(createTableSql, function() {
+						processScripts(runScriptFunction, getQueryFunction);
 					});
 				} else {
-					processScripts(runScriptFunction, runQueryFunction);
+					processScripts(runScriptFunction, getQueryFunction);
 				}
 			});
 		} else if (['mysql', 'postgresql'].indexOf(config.dialect) !== -1) {
