@@ -31,13 +31,26 @@ module.exports = function(grunt) {
 		}
 		scripts.sort();
 
-		var processScripts = function(runScriptFunction) {
+		var processScripts = function(runScriptFunction, runQueryFunction) {
 			async.mapSeries(scripts, function(script, doneCallback) {
 				grunt.log.write('Processing script \'' + script + '\'...');
-				var scriptContent = grunt.file.read(script);
-				runScriptFunction(scriptContent, function() {
-					grunt.log.writeln(' DONE');
-					doneCallback(null, script);
+				var checkExecutedSql = "select count(*) from " + config.scriptFilenameTable + " where script_name = '" + path.basename(script) + "'";
+				console.log(checkExecutedSql);
+				runQueryFunction(checkExecutedSql, function(result) {
+					if (result[0] == 0) {
+						var scriptContent = grunt.file.read(script);
+						runScriptFunction(scriptContent, function() {
+							grunt.log.writeln(' DONE');
+							checkExecutedSql = "insert into " + config.scriptFilenameTable + "(script_name) values('" + path.basename(script) + "')";
+							console.log(checkExecutedSql);
+							runQueryFunction(checkExecutedSql, function(result) {
+								doneCallback(null, script);
+							});
+						});
+					} else {
+						grunt.log.writeln(' already executed');
+						doneCallback(null, script);
+					}
 				});
 			}, function() {
 				grunt.log.writeln('All scripts processed.');
@@ -58,7 +71,18 @@ module.exports = function(grunt) {
 				var runScriptFunction = function(sql, successCallback) {
 					db.exec(sql, successCallback);
 				};
-				processScripts(runScriptFunction);
+				var runQueryFunction = function(sql, successCallback) {
+					db.run(sql, successCallback);
+				};
+				var scriptFilenameTableExists = false;
+				// TODO: Check if config.scriptFilenameTable exists in database
+				if (!scriptFilenameTableExists) {
+					runQueryFunction("create table " + config.scriptFilenameTable + "(script_name varchar(100) not null)", function() {
+						processScripts(runScriptFunction, runQueryFunction);
+					});
+				} else {
+					processScripts(runScriptFunction, runQueryFunction);
+				}
 			});
 		} else if (['mysql', 'postgresql'].indexOf(config.dialect) !== -1) {
 			grunt.log.warn('Specified dialect \'' + config.dialect + '\' not supported yet');
