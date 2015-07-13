@@ -25,62 +25,40 @@ In your project's Gruntfile, add a section named `sqlscript_process` to the data
 ```js
 grunt.initConfig({
   sqlscript_process: {
-    options: {
-      // Task-specific options go here.
-    },
-    your_target: {
-      // Target-specific file lists and/or options go here.
-    },
+		options : {},
+		dev : {
+			dialect : 'sqlite',
+			sqliteDbFile : 'dist/test.sqlite',
+			scripts : 'sql/*.sql',
+			scriptFilenameTable : 'executed_scripts'
+		}
   },
 });
 ```
 
 ### Options
 
-#### options.separator
+#### your_target.dialect
 Type: `String`
-Default value: `',  '`
+One of: `sqlite`, so far...
 
-A string value that is used to do something with whatever.
+Name of a dialect used in sql scripts.
 
-#### options.punctuation
+#### your_target.sqliteDbFile
 Type: `String`
-Default value: `'.'`
 
-A string value that is used to do something else with whatever else.
+Path to the file of sqlite database.
 
-### Usage Examples
+#### your_target.scripts
+Type: `String`
 
-#### Default Options
-In this example, the default options are used to do something with whatever. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result would be `Testing, 1 2 3.`
+This is where your scripts are located.
 
-```js
-grunt.initConfig({
-  sqlscript_process: {
-    options: {},
-    files: {
-      'dest/default_options': ['src/testing', 'src/123'],
-    },
-  },
-});
-```
+#### your_target.scriptFilenameTable
+Type: `String`
 
-#### Custom Options
-In this example, custom options are used to do something else with whatever else. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result in this case would be `Testing: 1 2 3 !!!`
+This is the name of database table, where executed script names will be stored.
 
-```js
-grunt.initConfig({
-  sqlscript_process: {
-    options: {
-      separator: ': ',
-      punctuation: ' !!!',
-    },
-    files: {
-      'dest/default_options': ['src/testing', 'src/123'],
-    },
-  },
-});
-```
 
 ## Contributing
 In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
