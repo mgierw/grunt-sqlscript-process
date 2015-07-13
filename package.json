@@ -1,7 +1,7 @@
 {
   "name": "grunt-sqlscript-process",
   "description": "Processing sql scripts from specified folder",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "homepage": "https://github.com/mgierw/grunt-sqlscript-process",
   "author": {
     "name": "mgierw",
